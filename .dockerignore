@@ -1,3 +1,17 @@
+# Copyright 2024 The HuggingFace Inc. team. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # Git
 .git
 .gitmodules
@@ -6,19 +20,34 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
 *.egg-info/
 .eggs/
+.Python
 build/
 dist/
+develop-eggs/
+downloads/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
 *.egg
+.installed.cfg
+MANIFEST
 
-# 本机虚拟环境
+# Virtual environments
 .venv/
 venv/
 env/
 ENV/
 
-# 本机工具
+# IDE and local tools
 .idea/
 .vscode/
 .cursor/
@@ -31,13 +60,32 @@ ENV/
 .pytest_cache/
 .ruff_cache/
 .coverage
+.coverage.*
 htmlcov/
+.tox/
+.nox/
+.hypothesis/
 
-# 下载的数据与权重
+# Project outputs
+wandb/
+outputs/
+logs/
+checkpoints/
+tmp/
+data/
+rl/
+media/
+
+train_example/*
+!train_example/EXAMPLE/
+!train_example/EXAMPLE/**
+
+# Downloaded datasets and weights
 challenge2026_baseline/
 challenge2026_dataset/
 datasets/
 weight/
+resources/
 *.h5
 *.hdf5
 *.safetensors
@@ -46,27 +94,37 @@ weight/
 *.pt
 *.onnx
 
-# 训练与实验输出
-wandb/
-outputs/
-logs/
-checkpoints/
-
-train_example/*
-!train_example/EXAMPLE/
-!train_example/EXAMPLE/**
-
-# 测试产物
+# Test artifacts
 tests/outputs/
+!tests/artifacts
 
-# 密钥
+# Secrets
 .env
 .env.*
 !.env.example
+*.key
 
-# 杂项
+# Cache
+.cache/*
+!.cache/calibration/
+!.cache/calibration/**
+
+# Build and tooling leftovers
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# HPC and schedulers
+nautilus/*.yaml
+sbatch*.sh
+
+# Misc
 .DS_Store
 Thumbs.db
 Desktop.ini
 *.log
-.cache/

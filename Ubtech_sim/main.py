@@ -23,7 +23,7 @@ from source.config_loader import load_config, apply_scatter_config
 from source.SceneBuilder import SceneBuilder
 from source.RobotArticulation import RobotArticulation
 from source.DataLogger import DataLogger
-from source.coordinate_utils_v2 import CoordinateTransform
+from source.coordinate_utils import CoordinateTransform
 from source.grasp_planner import GraspPlanner
 
 # ── 1. Configuration ─────────────────────────────────────────────────
