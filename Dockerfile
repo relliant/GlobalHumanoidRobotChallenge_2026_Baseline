@@ -5,7 +5,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ARG APP_DIR=/workspace/GlobalHumanoidRobotChallenge_2026_Baseline
 ARG PIP_INDEX_URL=https://pypi.org/simple
-ARG CN_PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+ARG CN_PIP_INDEX_URL=https://pypi.org/simple
 
 ENV DEBIAN_FRONTEND=noninteractive \
     ACCEPT_EULA=Y \
@@ -20,6 +20,7 @@ RUN mkdir -p /var/lib/apt/lists/partial \
     && apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     git \
+    linux-libc-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspace
@@ -27,7 +28,12 @@ COPY . ${APP_DIR}
 
 # Install common dependencies into Isaac Sim's Python environment.
 # Keep numpy and packaging pinned/limited to avoid breaking Isaac Sim.
-RUN /isaac-sim/python.sh -m pip install --no-cache-dir -i ${PIP_INDEX_URL} \
+RUN /isaac-sim/python.sh -m pip install --no-cache-dir \
+    -i ${PIP_INDEX_URL} \
+    --extra-index-url https://pypi.org/simple \
+    --prefer-binary \
+    --retries 10 \
+    --timeout 120 \
     "cmake>=3.29.0.1" \
     "datasets>=2.19.0" \
     "deepdiff>=7.0.1" \
@@ -60,7 +66,19 @@ RUN /isaac-sim/python.sh -m pip install --no-cache-dir -i ${PIP_INDEX_URL} \
     "accelerate" \
     "num2words" \
     "pytest>=8.1.0" \
-    && /isaac-sim/python.sh -m pip install --no-cache-dir -i ${PIP_INDEX_URL} --no-deps "pynput>=1.7.7"
+    && ( /isaac-sim/python.sh -m pip install --no-cache-dir \
+        -i ${PIP_INDEX_URL} \
+        --extra-index-url https://pypi.org/simple \
+        --prefer-binary \
+        --retries 10 \
+        --timeout 120 \
+        --no-deps "pynput>=1.7.7" \
+        || /isaac-sim/python.sh -m pip install --no-cache-dir \
+        -i https://pypi.org/simple \
+        --prefer-binary \
+        --retries 10 \
+        --timeout 120 \
+        --no-deps "pynput==1.8.2" )
 
 WORKDIR ${APP_DIR}
 
@@ -74,7 +92,21 @@ RUN if [[ -f pyproject.toml ]]; then \
     fi
 
 # Reinstall low-level keyboard dependency before editable install.
-RUN /isaac-sim/python.sh -m pip install --no-cache-dir -i ${CN_PIP_INDEX_URL} evdev-binary
+RUN ( /isaac-sim/python.sh -m pip install --no-cache-dir \
+                -i ${CN_PIP_INDEX_URL} \
+                --extra-index-url https://pypi.org/simple \
+                --prefer-binary \
+                --retries 10 \
+                --timeout 120 \
+                --no-deps evdev-binary \
+            || /isaac-sim/python.sh -m pip install --no-cache-dir \
+                -i ${CN_PIP_INDEX_URL} \
+                --extra-index-url https://pypi.org/simple \
+                --prefer-binary \
+                --retries 10 \
+                --timeout 120 \
+                evdev \
+            || echo "WARNING: evdev backend not installed; keyboard teleop may be limited in headless/remote environments." )
 
 # Safe editable install after removing risky numpy / packaging version constraints.
 RUN /isaac-sim/python.sh -m pip install --no-cache-dir -i ${CN_PIP_INDEX_URL} -e ${APP_DIR}
@@ -89,7 +121,6 @@ RUN /isaac-sim/python.sh -m pip uninstall -y \
     && /isaac-sim/python.sh -m pip install --no-cache-dir -i ${PIP_INDEX_URL} \
     numpy==1.26.4 \
     lxml==4.9.3 \
-    "usd-core>=25.2.post1,<26.0" \
     docstring-parser==0.16 \
     pyjwt
 
@@ -102,8 +133,8 @@ RUN apt-get update \
         libswscale-dev \
     && rm -rf /var/lib/apt/lists/*
 
-RUN /isaac-sim/python.sh -m pip uninstall -y torchcodec \
-    && /isaac-sim/python.sh -m pip install --no-cache-dir -i ${PIP_INDEX_URL} torchcodec==0.5.0
+ RUN /isaac-sim/python.sh -m pip uninstall -y torchcodec \
+      && /isaac-sim/python.sh -m pip install --no-cache-dir -i ${PIP_INDEX_URL} torchcodec==0.11.0
 
 RUN apt-get update && apt-get install -y evtest
 WORKDIR ${APP_DIR}
